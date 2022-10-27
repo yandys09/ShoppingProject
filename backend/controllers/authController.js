@@ -2,6 +2,8 @@ const User = require("../models/user");
 const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middlewares/catchAsyncErrors");
 const sendToken = require("../utils/jwtToken");
+const sendEmail = require("../utils/sendEmail")
+const crypto = require("crypto");
 
 // Register a user => /api/v1/register
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
@@ -46,14 +48,59 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
   sendToken(user, 200, res);
 });
 
+// forgot password => /api/v1/password/forgot
+exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+
+  if (!user) {
+    return next(
+      new ErrorHandler("이 이메일에서 사용자를 찾을 수 없습니다..!", 404)
+    );
+  }
+
+  // Get reset token
+   const resetToken = user.getResetPasswordToken();
+
+   await user.save({ validateBeforeSave: false });
+
+  // Create reset password url
+   const resetUrl = `${req.protocol}://${req.get(
+     "host"
+   )}/password/reset/${resetToken}`;
+
+  const message = `비밀번호 재설정 토큰은 다음과 같습니다.\n\n${resetUrl}\n\n이 이메일을 요청하지 않았다면 무시하십시오..`;
+
+  try {
+
+    await sendEmail({
+      email: user.email, 
+      subject: 'ShopIT Password Recovery',
+      message
+    })
+
+    res.status(200).json({
+      success: true,
+      message: `Email set to: ${user.email}`
+    })
+    
+  } catch (error) {
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save({ validateBeforeSave: false});
+
+    return next(new ErrorHandler(error.message, 500))
+  }
+});
+
 // Logout user => /api/v1/logout
-exports.logout = catchAsyncErrors( async (req, res, next) => {
-  res.cookie('token', null, {
+exports.logout = catchAsyncErrors(async (req, res, next) => {
+  res.cookie("token", null, {
     expires: new Date(Date.now()),
-    httpOnly: true
-  })
+    httpOnly: true,
+  });
   res.status(200).json({
     success: true,
-    message: "로그 아웃!~~~"
-  })
-})
+    message: "로그 아웃!~~~",
+  });
+});
