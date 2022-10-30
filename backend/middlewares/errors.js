@@ -26,9 +26,27 @@ module.exports = (err, req, res, next) => {
     }
 
     // Handling Mongoose Validation Error
-    if (err.name === "ValidationError") {
-      const message = Object.values(err.errors).map(value => value.message);
-      error = new ErrorHandler(message, 400)
+    if (err.name === "유효성 검사 오류") {
+      const message = Object.values(err.errors).map((value) => value.message);
+      error = new ErrorHandler(message, 400);
+    }
+
+    // Handling Mongoose duplicate key errors
+    if (err.code === 11000) {
+      const message = `중복 ${Object.keys(err.keyValue)} 입력되었습니다.`;
+      error = new ErrorHandler(message, 400);
+    }
+
+    // Handling wrong JWT error
+    if (err.name === "JsonWebTokenError") {
+      const message = "JSON 웹 토큰이 잘못되었습니다. 다시 시도하십시오!!";
+      error = new ErrorHandler(message, 400);
+    }
+
+    // Handling Expired JWT error
+    if (err.name === "TokenExpiredError") {
+      const message = "JSON 웹 토큰이 만료되었습니다. 다시 시도하십시오!!";
+      error = new ErrorHandler(message, 400);
     }
 
     res.status(error.statusCode || 500).json({
