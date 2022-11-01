@@ -64,10 +64,10 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
 
   await user.save({ validateBeforeSave: false });
 
-  // Create reset password url
+  // Create reset password url - url 전부 다 기재해야함.
   const resetUrl = `${req.protocol}://${req.get(
     "host"
-  )}/password/reset/${resetToken}`;
+  )}/api/v1/password/reset/${resetToken}`;
 
   const message = `비밀번호 재설정 토큰은 다음과 같습니다.\n\n${resetUrl}\n\n이 이메일을 요청하지 않았다면 무시하십시오..`;
 
@@ -144,9 +144,7 @@ exports.updatePassword = catchAsyncErrors(async (req, res, next) => {
   // Check previous user password
   const isMatched = await user.comparePassword(req.body.oldPassword);
   if (!isMatched) {
-    return next(
-      new ErrorHandler("이전 비밀번호가 올바르지 않습니다.")
-    );
+    return next(new ErrorHandler("이전 비밀번호가 올바르지 않습니다."));
   }
 
   user.password = req.body.password;
@@ -160,25 +158,22 @@ exports.updateProfile = catchAsyncErrors(async (req, res, next) => {
   const newUserData = {
     name: req.body.name,
     email: req.body.email,
-
-  }
+  };
 
   // Update avatar: TODO
   const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
     new: true,
     runValidators: true,
-    useFindAndModify: false
-  })
+    useFindAndModify: false,
+  });
 
   res.status(200).json({
     success: true,
-    
-  })
+    // user
+  });
 
+  console.log("user : ", user);
 });
-
-
-
 
 // Logout user => /api/v1/logout
 exports.logout = catchAsyncErrors(async (req, res, next) => {
@@ -189,5 +184,32 @@ exports.logout = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "로그 아웃!~~~",
+  });
+});
+
+// Admin Routes
+
+// Get all users => /api/v1/admin/users
+exports.allUsers = catchAsyncErrors(async (req, res, next) => {
+  const users = await User.find();
+
+  res.status(200).json({
+    success: true,
+    users,
+  });
+});
+
+// Get user details => /api/v1/admin/user/:id
+exports.getUserDetails = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return next(
+      new ErrorHandler(`다음 ID로 사용자를 찾을 수 없습니다.: ${req.params.id}`)
+    );
+  }
+
+  res.status(200).json({
+    success: true,
+    user,
   });
 });
