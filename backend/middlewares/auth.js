@@ -24,7 +24,7 @@ exports.authorizeRoles = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return next(
         new ErrorHandler(
-          `Role (${req.user.role}) is not allowed to access this resource`,
+          `(${req.user.role})은 이 리소스에 액세스할 수 없습니다.! 관리자로 로그인하세요.`,
           403
         )
       );
