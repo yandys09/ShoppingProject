@@ -30,7 +30,7 @@ const server = app.listen(process.env.PORT, () => {
 
 // Handle Unhandled Promise rejections
 process.on("unhandledRejection", (err) => {
-  console.log(`ERROR: ${err.message}`.bgRed.underline);
+  console.log(`ERROR: ${err.stack}`.bgRed.underline); //err.message
   console.log(
     `Server shutdown due to unhandled Promise rejection(처리되지 않은 Promise 거부로 인해 서버 종료)`
       .bgRed.yellow

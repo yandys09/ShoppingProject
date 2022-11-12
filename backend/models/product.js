@@ -61,37 +61,42 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: [true, "제품 재고를 입력하세요.!"],
     maxLength: [5, "제품의 숫자는 5자를 초과할 수 없습니다.!"],
-   default: 0
+    default: 0,
   },
   numOfReviews: {
     type: Number,
-    default: 0
+    default: 0,
   },
   reviews: [
     {
+      user: {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+        required: true,
+      },
       name: {
         type: String,
         required: true,
       },
-      rating:{
-        type:Number,
-        required: true
+      rating: {
+        type: Number,
+        required: true,
       },
       comment: {
         type: String,
-        required: true
-      }
-    }
+        required: true,
+      },
+    },
   ],
   user: {
     type: mongoose.Schema.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   createAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model("Product", productSchema)

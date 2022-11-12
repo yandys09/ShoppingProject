@@ -51,7 +51,7 @@ exports.getSingleOrder = catchAsyncErrors(async (req, res, next) => {
 
 // Get logged in user orders => /api/v1/orders/me
 exports.myOrders = catchAsyncErrors(async (req, res, next) => {
-  const orders = await Order.find({ user: req.user.id})
+  const orders = await Order.find({ user: req.user.id });
 
   res.status(200).json({
     success: true,
@@ -59,14 +59,14 @@ exports.myOrders = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// Get all orders => /api/v1/admin/orders
+// Get all orders - ADMIN => /api/v1/admin/orders
 exports.allOrders = catchAsyncErrors(async (req, res, next) => {
-  const orders = await Order.find()
+  const orders = await Order.find();
 
   let totalAmount = 0;
-  orders.forEach(order => {
-    totalAmount += order.totalPrice
-  })
+  orders.forEach((order) => {
+    totalAmount += order.totalPrice;
+  });
 
   res.status(200).json({
     success: true,
@@ -75,4 +75,48 @@ exports.allOrders = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+// Update / Process order - ADMIN => /api/v1/admin/order/:id
+exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
+  const order = await Order.findById(req.params.id);
+
+  if (order.orderStatus === "처리") {
+    return next(new ErrorHandler("이 주문을 이미 전달했습니다.", 400));
+  }
+
+  order.orderItems.forEach(async (item) => {
+    await updateStock(item.product, item.quantity);
+  });
+
+  order.orderStatus = req.body.status;
+  order.deliveredAt = Date.now();
+  await order.save();
+
+  res.status(200).json({
+    success: true,
+  });
+});
+
+async function updateStock(id, quantity) {
+  const product = await Product.findById(id);
+
+  product.stock = product.stock - quantity;
+
+  await product.save({ validateBeforeSave: false});
+}
+
+
+// Delete order => /api/v1/admin/order/:id
+exports.deleteOrder = catchAsyncErrors(async (req, res, next) => {
+  const order = await Order.findById(req.params.id)
+
+  if (!order) {
+    return next(new ErrorHandler("이 ID로 주문을 찾을 수 없습니다.", 404));
+  }
+
+  await order.remove()
+  res.status(200).json({
+    success: true,
+   
+  });
+});
 
