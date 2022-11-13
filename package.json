@@ -5,8 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node backend/server.js",
+    "start-server": "nodemon backend/server.js --ignore 'frontend/",
+    "start-client": "npm start --prefix frontend/",
     "dev": "SET NODE_ENV=DEVELOPMENT& nodemon backend/server",
     "prod": "SET NODE_ENV=PRODUCTION& nodemon backend/server",
+    "deve":"concurrently \"npm run start-server\" \" npm run start-client\"",
     "seeder": "node backend/utils/seeder.js"
   },
   "author": "yandys",
@@ -24,6 +27,7 @@
     "validator": "^13.7.0"
   },
   "devDependencies": {
+    "concurrently": "^7.5.0",
     "nodemon": "^2.0.20"
   }
 }
