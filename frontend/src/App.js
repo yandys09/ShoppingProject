@@ -1,3 +1,5 @@
+import React from "react";
+
 import { BrowserRouter as Router, Route } from "react-router-dom";
 
 import Home from "./components/Home";
@@ -12,6 +14,7 @@ function App() {
         <Header />
         <div className="container container-fluid">
           <Route path="/" component={Home} exact />
+          <Route path="/search/:keyword" component={Home} />
           <Route path="/product/:id" component={ProductDetails} exact />
         </div>
         <Footer />
